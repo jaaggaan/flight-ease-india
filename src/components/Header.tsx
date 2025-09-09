@@ -19,11 +19,11 @@ const Header = () => {
 
           {/* Navigation - Desktop */}
           <nav className="hidden md:flex items-center gap-6">
-            <Button variant="ghost" className="text-muted-foreground hover:text-foreground">
-              Flights
+            <Button variant="ghost" className="text-muted-foreground hover:text-foreground" asChild>
+              <a href="/">Flights</a>
             </Button>
-            <Button variant="ghost" className="text-muted-foreground hover:text-foreground">
-              My Bookings
+            <Button variant="ghost" className="text-muted-foreground hover:text-foreground" asChild>
+              <a href="/my-bookings">My Bookings</a>
             </Button>
             <Button variant="ghost" className="text-muted-foreground hover:text-foreground">
               Offers

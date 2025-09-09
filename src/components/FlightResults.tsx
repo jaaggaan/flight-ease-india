@@ -164,8 +164,8 @@ const FlightResults = () => {
                   </div>
                   <p className="text-sm text-muted-foreground mb-3">per person</p>
                   <div className="space-y-2">
-                    <Button variant="hero" className="w-full lg:w-auto px-8">
-                      Book Now
+                    <Button variant="hero" className="w-full lg:w-auto px-8" asChild>
+                      <a href={`/book-flight?flightId=${flight.id}`}>Book Now</a>
                     </Button>
                     <div className="flex gap-2 justify-center lg:justify-end">
                       <Button variant="outline" size="sm">
