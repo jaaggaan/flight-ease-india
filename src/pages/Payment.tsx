@@ -28,22 +28,51 @@ const Payment = () => {
   const totalAmount = flight ? Math.round(flight.price * 1.1 * passengers.length) : 5000;
 
   const handlePayment = () => {
-    // Simulate payment processing
-    toast({
-      title: "Payment Processing",
-      description: "Please wait while we process your payment...",
-    });
+    // Razorpay demo payment integration
+    const options = {
+      key: "rzp_test_1DP5mmOlF5G5ag", // Demo test key
+      amount: totalAmount * 100, // Amount in paise
+      currency: "INR",
+      name: "SkyYatra",
+      description: `Flight booking - ${flight.airline} ${flight.flightNumber}`,
+      image: "/placeholder.svg",
+      handler: function (response: any) {
+        toast({
+          title: "Payment Successful!",
+          description: `Payment ID: ${response.razorpay_payment_id}`,
+        });
+        
+        // Navigate to confirmation page
+        setTimeout(() => {
+          navigate('/booking-confirmed', { 
+            state: { 
+              flight, 
+              passengers, 
+              bookingId: 'SY' + Math.random().toString(36).substr(2, 8).toUpperCase(),
+              amount: totalAmount,
+              paymentId: response.razorpay_payment_id
+            } 
+          });
+        }, 1000);
+      },
+      prefill: {
+        name: passengers[0]?.firstName + ' ' + passengers[0]?.lastName || '',
+        email: passengers[0]?.email || '',
+        contact: passengers[0]?.phone || ''
+      },
+      theme: {
+        color: "#2563eb"
+      }
+    };
 
-    setTimeout(() => {
-      navigate('/booking-confirmed', { 
-        state: { 
-          flight, 
-          passengers, 
-          bookingId: 'SY' + Math.random().toString(36).substr(2, 8).toUpperCase(),
-          amount: totalAmount
-        } 
-      });
-    }, 2000);
+    // Load Razorpay script dynamically
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.onload = () => {
+      const rzp = new (window as any).Razorpay(options);
+      rzp.open();
+    };
+    document.head.appendChild(script);
   };
 
   if (!flight) {
@@ -250,7 +279,7 @@ const Payment = () => {
                   onClick={handlePayment}
                 >
                   <Lock className="h-4 w-4" />
-                  Pay ₹{totalAmount.toLocaleString('en-IN')}
+                  Pay with Razorpay ₹{totalAmount.toLocaleString('en-IN')}
                 </Button>
 
                 <p className="text-xs text-center text-muted-foreground">

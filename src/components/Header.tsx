@@ -25,6 +25,9 @@ const Header = () => {
             <Button variant="ghost" className="text-muted-foreground hover:text-foreground" asChild>
               <a href="/my-bookings">My Bookings</a>
             </Button>
+            <Button variant="ghost" className="text-muted-foreground hover:text-foreground" asChild>
+              <a href="/admin-login">Admin</a>
+            </Button>
             <Button variant="ghost" className="text-muted-foreground hover:text-foreground">
               Offers
             </Button>
