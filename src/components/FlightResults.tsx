@@ -1,7 +1,14 @@
-import { Clock, Plane, IndianRupee, Wifi, Utensils, Tv } from "lucide-react";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { ArrowLeft, Clock, Plane, IndianRupee, Wifi, Utensils, Tv } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+
+interface FlightResultsProps {
+  searchData?: any;
+  onBackToSearch?: () => void;
+}
 
 const mockFlights = [
   {
@@ -62,7 +69,9 @@ const mockFlights = [
   },
 ];
 
-const FlightResults = () => {
+const FlightResults = ({ searchData, onBackToSearch }: FlightResultsProps) => {
+  const navigate = useNavigate();
+  
   const getAmenityIcon = (amenity: string) => {
     switch (amenity) {
       case "wifi": return <Wifi className="h-4 w-4" />;
@@ -74,11 +83,28 @@ const FlightResults = () => {
 
   return (
     <div className="w-full max-w-6xl mx-auto space-y-4">
-      {/* Results Header */}
+      {/* Back to Search Button and Header */}
       <div className="flex items-center justify-between mb-6">
-        <div>
-          <h2 className="text-2xl font-bold text-foreground">Available Flights</h2>
-          <p className="text-muted-foreground">Delhi → Mumbai • {mockFlights.length} flights found</p>
+        <div className="flex items-center gap-4">
+          {onBackToSearch && (
+            <Button 
+              variant="ghost" 
+              onClick={onBackToSearch}
+              className="p-2"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back to Search
+            </Button>
+          )}
+          <div>
+            <h2 className="text-2xl font-bold text-foreground">Available Flights</h2>
+            <p className="text-muted-foreground">
+              {searchData ? 
+                `${searchData.from} → ${searchData.to} • ${mockFlights.length} flights found` :
+                `Delhi → Mumbai • ${mockFlights.length} flights found`
+              }
+            </p>
+          </div>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" size="sm">Price</Button>
@@ -164,8 +190,17 @@ const FlightResults = () => {
                   </div>
                   <p className="text-sm text-muted-foreground mb-3">per person</p>
                   <div className="space-y-2">
-                    <Button variant="hero" className="w-full lg:w-auto px-8" asChild>
-                      <a href={`/book-flight?flightId=${flight.id}`}>Book Now</a>
+                    <Button 
+                      variant="hero" 
+                      className="w-full lg:w-auto px-8"
+                      onClick={() => navigate('/book-flight', { 
+                        state: { 
+                          flight: flight,
+                          searchData: searchData 
+                        } 
+                      })}
+                    >
+                      Book Now
                     </Button>
                     <div className="flex gap-2 justify-center lg:justify-end">
                       <Button variant="outline" size="sm">

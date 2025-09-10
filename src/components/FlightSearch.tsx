@@ -9,6 +9,10 @@ import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 
+interface FlightSearchProps {
+  onSearch?: (searchData: any) => void;
+}
+
 const popularCities = [
   { code: "DEL", city: "Delhi", airport: "Indira Gandhi International" },
   { code: "BOM", city: "Mumbai", airport: "Chhatrapati Shivaji Maharaj International" },
@@ -20,7 +24,7 @@ const popularCities = [
   { code: "COK", city: "Kochi", airport: "Cochin International" },
 ];
 
-const FlightSearch = () => {
+const FlightSearch = ({ onSearch }: FlightSearchProps) => {
   const [tripType, setTripType] = useState("roundtrip");
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
@@ -36,7 +40,12 @@ const FlightSearch = () => {
   };
 
   const handleSearch = () => {
-    console.log("Searching flights...", {
+    if (!from || !to || !departDate) {
+      alert("Please fill in all required fields (From, To, and Departure Date)");
+      return;
+    }
+
+    const searchData = {
       tripType,
       from,
       to,
@@ -44,7 +53,13 @@ const FlightSearch = () => {
       returnDate,
       passengers,
       classType,
-    });
+    };
+    
+    console.log("Searching flights...", searchData);
+    
+    if (onSearch) {
+      onSearch(searchData);
+    }
   };
 
   return (

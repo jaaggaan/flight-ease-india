@@ -1,123 +1,124 @@
 import { useState } from "react";
-import Header from "@/components/Header";
+import { Plane, MapPin, Calendar, Clock, Shield, Star, Award } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import FlightSearch from "@/components/FlightSearch";
 import FlightResults from "@/components/FlightResults";
+import Header from "@/components/Header";
 import heroImage from "@/assets/hero-flight.jpg";
-import { Plane, Shield, Clock, Award } from "lucide-react";
 
 const Index = () => {
   const [showResults, setShowResults] = useState(false);
+  const [searchData, setSearchData] = useState(null);
+
+  const handleSearch = (data: any) => {
+    setSearchData(data);
+    setShowResults(true);
+  };
+
+  const handleBackToSearch = () => {
+    setShowResults(false);
+    setSearchData(null);
+  };
 
   return (
     <div className="min-h-screen bg-background">
       <Header />
       
-      {/* Hero Section */}
-      <section 
-        className="relative bg-gradient-hero min-h-[60vh] flex items-center justify-center overflow-hidden"
-        style={{ 
-          backgroundImage: `linear-gradient(rgba(59, 130, 246, 0.8), rgba(147, 197, 253, 0.6)), url(${heroImage})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center'
-        }}
-      >
-        <div className="container mx-auto px-4 py-20 relative z-10">
-          <div className="text-center mb-12">
-            <h1 className="text-4xl md:text-6xl font-bold text-primary-foreground mb-6 leading-tight">
-              Discover India's Skies
-            </h1>
-            <p className="text-xl md:text-2xl text-primary-foreground/90 mb-8 max-w-3xl mx-auto">
-              Book flights across India with the most trusted airline booking platform. 
-              Compare prices, choose your perfect flight, and travel with confidence.
-            </p>
-          </div>
-          
-          {/* Search Component */}
-          <FlightSearch />
-        </div>
-        
-        {/* Floating Elements */}
-        <div className="absolute top-20 left-10 animate-bounce">
-          <Plane className="h-8 w-8 text-primary-foreground/30" />
-        </div>
-        <div className="absolute bottom-20 right-10 animate-bounce delay-300">
-          <Plane className="h-6 w-6 text-primary-foreground/20 rotate-45" />
-        </div>
-      </section>
-
-      {/* Features Section */}
-      <section className="py-20 bg-muted/30">
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-12 text-foreground">
-            Why Choose SkyIndia?
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {[
-              {
-                icon: Shield,
-                title: "Secure Booking",
-                description: "Bank-level security with SSL encryption and secure payment gateways"
-              },
-              {
-                icon: Clock,
-                title: "24/7 Support",
-                description: "Round-the-clock customer support for all your travel needs"
-              },
-              {
-                icon: Award,
-                title: "Best Prices",
-                description: "Compare prices across airlines and get the best deals guaranteed"
-              },
-              {
-                icon: Plane,
-                title: "Major Airlines",
-                description: "Partner with all major Indian airlines including IndiGo, Air India, Vistara"
-              }
-            ].map((feature, index) => (
-              <div key={index} className="text-center group">
-                <div className="bg-gradient-card p-6 rounded-xl shadow-card group-hover:shadow-elegant transition-shadow duration-300">
-                  <div className="w-16 h-16 bg-gradient-hero rounded-full flex items-center justify-center mx-auto mb-4">
-                    <feature.icon className="h-8 w-8 text-primary-foreground" />
+      <div className="container mx-auto px-4 py-16">
+        {!showResults ? (
+          <>
+            {/* Hero Section */}
+            <div className="text-center mb-16">
+              <div className="relative mb-8">
+                <img 
+                  src={heroImage} 
+                  alt="Modern aircraft in flight" 
+                  className="w-full h-96 object-cover rounded-2xl shadow-elegant"
+                />
+                <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-accent/20 rounded-2xl"></div>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="text-center text-white">
+                    <h1 className="text-5xl md:text-6xl font-bold mb-4 drop-shadow-lg">
+                      Discover India
+                    </h1>
+                    <p className="text-xl md:text-2xl opacity-90 drop-shadow-md">
+                      Book flights across incredible destinations
+                    </p>
                   </div>
-                  <h3 className="text-xl font-semibold mb-3 text-foreground">{feature.title}</h3>
-                  <p className="text-muted-foreground">{feature.description}</p>
                 </div>
               </div>
-            ))}
-          </div>
-        </div>
-      </section>
+            </div>
 
-      {/* Sample Results Section */}
-      <section className="py-20">
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-12 text-foreground">
-            Popular Flight Routes
-          </h2>
-          <FlightResults />
-        </div>
-      </section>
+            {/* Flight Search */}
+            <div className="mb-16">
+              <FlightSearch onSearch={handleSearch} />
+            </div>
 
-      {/* CTA Section */}
-      <section className="py-20 bg-gradient-hero">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold text-primary-foreground mb-6">
-            Ready to Take Off?
-          </h2>
-          <p className="text-xl text-primary-foreground/90 mb-8 max-w-2xl mx-auto">
-            Join millions of travelers who trust SkyIndia for their flight bookings. 
-            Start your journey today!
-          </p>
-          <div className="flex gap-4 justify-center">
-            <button className="bg-secondary text-secondary-foreground hover:bg-secondary/80 px-8 py-3 rounded-lg font-semibold shadow-card transition-all duration-300 transform hover:scale-105">
-              Download App
-            </button>
-            <button className="bg-accent text-accent-foreground hover:bg-accent/90 px-8 py-3 rounded-lg font-semibold shadow-card transition-all duration-300 transform hover:scale-105">
-              Learn More
-            </button>
-          </div>
-        </div>
-      </section>
+            {/* Features */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+              {[
+                {
+                  icon: Shield,
+                  title: "Secure Booking",
+                  description: "Your payments and data are protected with bank-level security"
+                },
+                {
+                  icon: Star,
+                  title: "Best Prices",
+                  description: "Compare prices from multiple airlines to get the best deals"
+                },
+                {
+                  icon: Award,
+                  title: "24/7 Support",
+                  description: "Round-the-clock customer support for all your travel needs"
+                }
+              ].map((feature, index) => (
+                <Card key={index} className="shadow-card bg-gradient-card border-0 hover:shadow-elegant transition-shadow">
+                  <CardContent className="p-6 text-center">
+                    <div className="p-3 bg-gradient-hero rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                      <feature.icon className="h-8 w-8 text-primary-foreground" />
+                    </div>
+                    <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
+                    <p className="text-muted-foreground">{feature.description}</p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            {/* Popular Destinations */}
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold mb-4">Popular Destinations</h2>
+              <p className="text-muted-foreground text-lg">Explore the most loved destinations in India</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
+              {[
+                { city: "Goa", description: "Beaches & Nightlife", price: "₹4,500" },
+                { city: "Kerala", description: "Backwaters & Hills", price: "₹5,200" },
+                { city: "Rajasthan", description: "Palaces & Desert", price: "₹3,800" },
+                { city: "Kashmir", description: "Mountains & Lakes", price: "₹6,100" }
+              ].map((destination, index) => (
+                <Card key={index} className="shadow-card bg-gradient-card border-0 hover:shadow-elegant transition-all hover:scale-105 cursor-pointer">
+                  <CardContent className="p-6">
+                    <div className="flex items-center gap-3 mb-3">
+                      <MapPin className="h-5 w-5 text-primary" />
+                      <h3 className="font-semibold text-lg">{destination.city}</h3>
+                    </div>
+                    <p className="text-muted-foreground mb-3">{destination.description}</p>
+                    <p className="text-accent font-semibold">Starting from {destination.price}</p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </>
+        ) : (
+          <FlightResults 
+            searchData={searchData} 
+            onBackToSearch={handleBackToSearch}
+          />
+        )}
+      </div>
 
       {/* Footer */}
       <footer className="bg-card border-t border-border py-12">
@@ -128,7 +129,7 @@ const Index = () => {
                 <div className="p-2 bg-gradient-hero rounded-lg shadow-elegant">
                   <Plane className="h-5 w-5 text-primary-foreground" />
                 </div>
-                <span className="text-xl font-bold text-foreground">SkyIndia</span>
+                <span className="text-xl font-bold text-foreground">SkyYatra</span>
               </div>
               <p className="text-muted-foreground">
                 India's premier flight booking platform, connecting you to destinations across the country.
@@ -165,7 +166,7 @@ const Index = () => {
           </div>
           
           <div className="border-t border-border mt-8 pt-8 text-center text-muted-foreground">
-            <p>&copy; 2024 SkyIndia Flight Booking System. All rights reserved.</p>
+            <p>&copy; 2024 SkyYatra Flight Booking System. All rights reserved.</p>
           </div>
         </div>
       </footer>

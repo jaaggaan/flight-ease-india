@@ -38,11 +38,20 @@ const Header = () => {
 
           {/* User Actions */}
           <div className="flex items-center gap-3">
-            <Button variant="outline" size="sm" className="hidden md:flex">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="hidden md:flex"
+              onClick={() => alert("Sign In functionality will be implemented with Supabase backend")}
+            >
               <User className="h-4 w-4" />
               Sign In
             </Button>
-            <Button variant="hero" size="sm">
+            <Button 
+              variant="hero" 
+              size="sm"
+              onClick={() => alert("Register functionality will be implemented with Supabase backend")}
+            >
               Register
             </Button>
             {/* Mobile Menu */}
