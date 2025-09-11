@@ -11,45 +11,43 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import Header from "@/components/Header";
-
-const mockBookings = [
-  {
-    id: "SY12345678",
-    airline: "IndiGo",
-    flightNumber: "6E 2142",
-    departure: { time: "06:30", city: "Delhi", code: "DEL", date: "2024-02-15" },
-    arrival: { time: "08:45", city: "Mumbai", code: "BOM", date: "2024-02-15" },
-    passengers: 1,
-    amount: 5024,
-    status: "confirmed",
-    bookingDate: "2024-01-15"
-  },
-  {
-    id: "SY87654321",
-    airline: "Air India",
-    flightNumber: "AI 131",
-    departure: { time: "14:20", city: "Mumbai", code: "BOM", date: "2024-01-20" },
-    arrival: { time: "16:45", city: "Bangalore", code: "BLR", date: "2024-01-20" },
-    passengers: 2,
-    amount: 8456,
-    status: "completed",
-    bookingDate: "2024-01-05"
-  },
-  {
-    id: "SY11223344",
-    airline: "Vistara",
-    flightNumber: "UK 995",
-    departure: { time: "09:15", city: "Delhi", code: "DEL", date: "2024-03-10" },
-    arrival: { time: "11:30", city: "Chennai", code: "MAA", date: "2024-03-10" },
-    passengers: 1,
-    amount: 7289,
-    status: "cancelled",
-    bookingDate: "2024-01-25"
-  }
-];
+import { useBookings, BookingWithFlight } from "@/hooks/useBookings";
 
 const MyBookings = () => {
   const [activeTab, setActiveTab] = useState("all");
+  const { bookings, loading, error } = useBookings(true); // User sees only their bookings
+
+  const transformBookingData = (booking: BookingWithFlight) => {
+    if (!booking.flight) return null;
+    
+    const departureTime = new Date(booking.flight.departure_time);
+    const arrivalTime = new Date(booking.flight.arrival_time);
+    
+    return {
+      id: `SY${booking.id.toString().padStart(8, '0')}`,
+      airline: "SkyYatra", // Default airline since we don't have this in schema
+      flightNumber: booking.flight.flight_number,
+      departure: { 
+        time: departureTime.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }), 
+        city: booking.flight.origin, 
+        code: booking.flight.origin, 
+        date: departureTime.toISOString().split('T')[0] 
+      },
+      arrival: { 
+        time: arrivalTime.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }), 
+        city: booking.flight.destination, 
+        code: booking.flight.destination, 
+        date: arrivalTime.toISOString().split('T')[0] 
+      },
+      passengers: 1, // Default since we don't track passenger count per booking
+      amount: booking.flight.price || 0,
+      status: "confirmed", // Default status since we don't have status in schema
+      bookingDate: booking.created_at ? new Date(booking.created_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+      seatNumber: booking.seat_number
+    };
+  };
+
+  const transformedBookings = bookings.map(transformBookingData).filter((booking): booking is NonNullable<typeof booking> => booking !== null);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -64,7 +62,7 @@ const MyBookings = () => {
     }
   };
 
-  const filteredBookings = mockBookings.filter(booking => {
+  const filteredBookings = transformedBookings.filter(booking => {
     if (activeTab === "all") return true;
     if (activeTab === "upcoming") return booking.status === "confirmed";
     if (activeTab === "completed") return booking.status === "completed";
@@ -94,7 +92,23 @@ const MyBookings = () => {
             </TabsList>
 
             <TabsContent value={activeTab} className="mt-6">
-              {filteredBookings.length === 0 ? (
+              {loading ? (
+                <Card className="shadow-card bg-gradient-card border-0">
+                  <CardContent className="p-12 text-center">
+                    <Plane className="h-16 w-16 text-muted-foreground mx-auto mb-4 animate-pulse" />
+                    <h3 className="text-xl font-semibold mb-2">Loading Your Bookings</h3>
+                    <p className="text-muted-foreground">Please wait while we fetch your flight bookings...</p>
+                  </CardContent>
+                </Card>
+              ) : error ? (
+                <Card className="shadow-card bg-gradient-card border-0">
+                  <CardContent className="p-12 text-center">
+                    <Plane className="h-16 w-16 text-destructive mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold mb-2">Error Loading Bookings</h3>
+                    <p className="text-muted-foreground mb-6">{error}</p>
+                  </CardContent>
+                </Card>
+              ) : filteredBookings.length === 0 ? (
                 <Card className="shadow-card bg-gradient-card border-0">
                   <CardContent className="p-12 text-center">
                     <Plane className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
@@ -218,6 +232,9 @@ const MyBookings = () => {
                             </div>
                             <div className="text-xs text-muted-foreground">
                               Booked on {new Date(booking.bookingDate).toLocaleDateString()}
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              Seat: {booking.seatNumber}
                             </div>
                           </div>
                         </div>

@@ -19,11 +19,13 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
+import { useBookings } from "@/hooks/useBookings";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
+  const { bookings, loading, error } = useBookings(false); // Admin sees all bookings
 
   const handleLogout = () => {
     toast({
@@ -35,41 +37,23 @@ const AdminDashboard = () => {
 
   // Mock data for dashboard
   const stats = [
-    { title: "Total Bookings", value: "2,847", icon: Plane, change: "+12%" },
+    { title: "Total Bookings", value: bookings.length.toString(), icon: Plane, change: "+12%" },
     { title: "Active Users", value: "1,234", icon: Users, change: "+8%" },
-    { title: "Revenue", value: "₹12,45,000", icon: CreditCard, change: "+23%" },
+    { title: "Revenue", value: `₹${bookings.reduce((sum, booking) => sum + (booking.flight?.price || 0), 0).toLocaleString('en-IN')}`, icon: CreditCard, change: "+23%" },
     { title: "Flights Today", value: "156", icon: Calendar, change: "+5%" }
   ];
 
-  const recentBookings = [
-    {
-      id: "SY12345678",
-      passenger: "Rajesh Kumar",
-      flight: "AI 131",
-      route: "DEL → BOM",
-      date: "2024-01-15",
-      amount: "₹8,500",
-      status: "confirmed"
-    },
-    {
-      id: "SY87654321",
-      passenger: "Priya Sharma",
-      flight: "6E 245",
-      route: "BLR → DEL",
-      date: "2024-01-15",
-      amount: "₹12,200", 
-      status: "pending"
-    },
-    {
-      id: "SY45612378",
-      passenger: "Amit Singh",
-      flight: "SG 418",
-      route: "MAA → BOM",
-      date: "2024-01-14",
-      amount: "₹6,800",
-      status: "cancelled"
-    }
-  ];
+  const getBookingStatus = () => "confirmed"; // Default status since we don't have status in schema
+
+  const formatBookingForDisplay = (booking: any) => ({
+    id: `SY${booking.id.toString().padStart(8, '0')}`,
+    passenger: booking.user_id || "Unknown User",
+    flight: booking.flight?.flight_number || "N/A",
+    route: booking.flight ? `${booking.flight.origin} → ${booking.flight.destination}` : "N/A",
+    date: booking.flight?.departure_time ? new Date(booking.flight.departure_time).toLocaleDateString() : "N/A",
+    amount: `₹${(booking.flight?.price || 0).toLocaleString('en-IN')}`,
+    status: getBookingStatus()
+  });
 
   return (
     <div className="min-h-screen bg-background">
@@ -159,32 +143,47 @@ const AdminDashboard = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {recentBookings.map((booking) => (
-                    <div key={booking.id} className="flex items-center justify-between p-4 border rounded-lg">
-                      <div className="flex items-center gap-4">
-                        <div>
-                          <p className="font-medium">{booking.passenger}</p>
-                          <p className="text-sm text-muted-foreground">Booking ID: {booking.id}</p>
-                        </div>
-                        <div>
-                          <p className="font-medium">{booking.flight}</p>
-                          <p className="text-sm text-muted-foreground">{booking.route}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm">{booking.date}</p>
-                          <p className="font-medium">{booking.amount}</p>
-                        </div>
-                      </div>
-                      <Badge 
-                        variant={
-                          booking.status === 'confirmed' ? 'default' :
-                          booking.status === 'pending' ? 'secondary' : 'destructive'
-                        }
-                      >
-                        {booking.status}
-                      </Badge>
+                  {loading ? (
+                    <div className="flex items-center justify-center p-8">
+                      <div className="text-muted-foreground">Loading bookings...</div>
                     </div>
-                  ))}
+                  ) : error ? (
+                    <div className="flex items-center justify-center p-8">
+                      <div className="text-destructive">Error: {error}</div>
+                    </div>
+                  ) : bookings.length === 0 ? (
+                    <div className="flex items-center justify-center p-8">
+                      <div className="text-muted-foreground">No bookings found</div>
+                    </div>
+                  ) : (
+                    bookings.map((booking) => {
+                      const displayBooking = formatBookingForDisplay(booking);
+                      return (
+                        <div key={booking.id} className="flex items-center justify-between p-4 border rounded-lg">
+                          <div className="flex items-center gap-4">
+                            <div>
+                              <p className="font-medium">{displayBooking.passenger}</p>
+                              <p className="text-sm text-muted-foreground">Booking ID: {displayBooking.id}</p>
+                            </div>
+                            <div>
+                              <p className="font-medium">{displayBooking.flight}</p>
+                              <p className="text-sm text-muted-foreground">{displayBooking.route}</p>
+                            </div>
+                            <div>
+                              <p className="text-sm">{displayBooking.date}</p>
+                              <p className="font-medium">{displayBooking.amount}</p>
+                            </div>
+                            <div>
+                              <p className="text-sm text-muted-foreground">Seat: {booking.seat_number}</p>
+                            </div>
+                          </div>
+                          <Badge variant="default">
+                            {displayBooking.status}
+                          </Badge>
+                        </div>
+                      );
+                    })
+                  )}
                 </div>
               </CardContent>
             </Card>
