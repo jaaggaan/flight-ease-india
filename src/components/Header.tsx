@@ -1,7 +1,12 @@
-import { Plane, User, Menu } from "lucide-react";
+import { Plane, User, Menu, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/useAuth";
+import { useNavigate } from "react-router-dom";
 
 const Header = () => {
+  const { user, signOut, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+
   return (
     <header className="bg-card/95 backdrop-blur-sm border-b border-border/50 sticky top-0 z-50 shadow-card">
       <div className="container mx-auto px-4 py-4">
@@ -38,22 +43,41 @@ const Header = () => {
 
           {/* User Actions */}
           <div className="flex items-center gap-3">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="hidden md:flex"
-              onClick={() => alert("Sign In functionality will be implemented with Supabase backend")}
-            >
-              <User className="h-4 w-4" />
-              Sign In
-            </Button>
-            <Button 
-              variant="hero" 
-              size="sm"
-              onClick={() => alert("Register functionality will be implemented with Supabase backend")}
-            >
-              Register
-            </Button>
+            {isAuthenticated ? (
+              <>
+                <div className="hidden md:flex items-center gap-2 text-sm text-muted-foreground">
+                  Welcome, {user?.email}
+                </div>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="hidden md:flex"
+                  onClick={signOut}
+                >
+                  <LogOut className="h-4 w-4" />
+                  Sign Out
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="hidden md:flex"
+                  onClick={() => navigate('/auth')}
+                >
+                  <User className="h-4 w-4" />
+                  Sign In
+                </Button>
+                <Button 
+                  variant="hero" 
+                  size="sm"
+                  onClick={() => navigate('/auth')}
+                >
+                  Register
+                </Button>
+              </>
+            )}
             {/* Mobile Menu */}
             <Button variant="ghost" size="icon" className="md:hidden">
               <Menu className="h-5 w-5" />
