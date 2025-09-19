@@ -116,10 +116,8 @@ const FlightSearch = ({ onSearch }: FlightSearchProps) => {
                   <MapPin className="h-4 w-4 text-primary" />
                   {from ? (
                     <div>
-                      <div className="font-semibold">{from}</div>
-                      <div className="text-xs text-muted-foreground">
-                        {popularCities.find(city => city.code === from)?.city}
-                      </div>
+                      <div className="font-semibold">{popularCities.find(city => city.code === from)?.city}</div>
+                      <div className="text-xs text-muted-foreground">{from}</div>
                     </div>
                   ) : (
                     <span className="text-muted-foreground">Select city</span>
@@ -173,10 +171,8 @@ const FlightSearch = ({ onSearch }: FlightSearchProps) => {
                   <MapPin className="h-4 w-4 text-accent" />
                   {to ? (
                     <div>
-                      <div className="font-semibold">{to}</div>
-                      <div className="text-xs text-muted-foreground">
-                        {popularCities.find(city => city.code === to)?.city}
-                      </div>
+                      <div className="font-semibold">{popularCities.find(city => city.code === to)?.city}</div>
+                      <div className="text-xs text-muted-foreground">{to}</div>
                     </div>
                   ) : (
                     <span className="text-muted-foreground">Select city</span>

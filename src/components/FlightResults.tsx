@@ -10,67 +10,53 @@ interface FlightResultsProps {
   onBackToSearch?: () => void;
 }
 
-const mockFlights = [
-  {
-    id: 1,
-    airline: "IndiGo",
-    flightNumber: "6E 2142",
-    logo: "🔵",
-    departure: { time: "06:30", city: "Delhi", code: "DEL" },
-    arrival: { time: "08:45", city: "Mumbai", code: "BOM" },
+const getFlightsForRoute = (searchData: any) => {
+  const fromCity = searchData?.from ? searchData.from : "DEL";
+  const toCity = searchData?.to ? searchData.to : "BOM"; 
+  
+  // Popular cities mapping
+  const cityNames: { [key: string]: string } = {
+    "DEL": "Delhi", "BOM": "Mumbai", "BLR": "Bangalore", "MAA": "Chennai", 
+    "CCU": "Kolkata", "HYD": "Hyderabad", "AMD": "Ahmedabad", "COK": "Kochi"
+  };
+
+  const airlines = [
+    { name: "IndiGo", logo: "🔵", code: "6E" },
+    { name: "Air India", logo: "🇮🇳", code: "AI" },
+    { name: "SpiceJet", logo: "🌶️", code: "SG" },
+    { name: "Vistara", logo: "✈️", code: "UK" }
+  ];
+
+  const times = ["06:30", "08:15", "14:20", "19:10", "10:45", "16:25"];
+  const aircraft = ["A320", "Boeing 737", "Boeing 737-800", "A320neo"];
+  
+  return airlines.map((airline, index) => ({
+    id: index + 1,
+    airline: airline.name,
+    flightNumber: `${airline.code} ${2000 + index * 100 + Math.floor(Math.random() * 99)}`,
+    logo: airline.logo,
+    departure: { 
+      time: times[index] || "06:30", 
+      city: cityNames[fromCity] || "Delhi", 
+      code: fromCity 
+    },
+    arrival: { 
+      time: times[index + 1] || "08:45", 
+      city: cityNames[toCity] || "Mumbai", 
+      code: toCity 
+    },
     duration: "2h 15m",
     stops: "Non-stop",
-    price: 4567,
-    amenities: ["wifi", "meal", "entertainment"],
-    aircraft: "A320",
-    onTime: 85,
-  },
-  {
-    id: 2,
-    airline: "Air India",
-    flightNumber: "AI 131",
-    logo: "🇮🇳",
-    departure: { time: "08:15", city: "Delhi", code: "DEL" },
-    arrival: { time: "10:35", city: "Mumbai", code: "BOM" },
-    duration: "2h 20m",
-    stops: "Non-stop",
-    price: 5234,
-    amenities: ["wifi", "meal", "entertainment"],
-    aircraft: "Boeing 737",
-    onTime: 78,
-  },
-  {
-    id: 3,
-    airline: "SpiceJet",
-    flightNumber: "SG 8147",
-    logo: "🌶️",
-    departure: { time: "14:20", city: "Delhi", code: "DEL" },
-    arrival: { time: "16:45", city: "Mumbai", code: "BOM" },
-    duration: "2h 25m",
-    stops: "Non-stop",
-    price: 3899,
-    amenities: ["wifi"],
-    aircraft: "Boeing 737-800",
-    onTime: 82,
-  },
-  {
-    id: 4,
-    airline: "Vistara",
-    flightNumber: "UK 995",
-    logo: "✈️",
-    departure: { time: "19:10", city: "Delhi", code: "DEL" },
-    arrival: { time: "21:30", city: "Mumbai", code: "BOM" },
-    duration: "2h 20m",
-    stops: "Non-stop",
-    price: 6789,
-    amenities: ["wifi", "meal", "entertainment"],
-    aircraft: "A320neo",
-    onTime: 89,
-  },
-];
+    price: 3500 + Math.floor(Math.random() * 3000),
+    amenities: index < 2 ? ["wifi", "meal", "entertainment"] : ["wifi"],
+    aircraft: aircraft[index % aircraft.length],
+    onTime: 75 + Math.floor(Math.random() * 15),
+  }));
+};
 
 const FlightResults = ({ searchData, onBackToSearch }: FlightResultsProps) => {
   const navigate = useNavigate();
+  const flights = getFlightsForRoute(searchData);
   
   const getAmenityIcon = (amenity: string) => {
     switch (amenity) {
@@ -100,8 +86,8 @@ const FlightResults = ({ searchData, onBackToSearch }: FlightResultsProps) => {
             <h2 className="text-2xl font-bold text-foreground">Available Flights</h2>
             <p className="text-muted-foreground">
               {searchData ? 
-                `${searchData.from} → ${searchData.to} • ${mockFlights.length} flights found` :
-                `Delhi → Mumbai • ${mockFlights.length} flights found`
+                `${searchData.from} → ${searchData.to} • ${flights.length} flights found` :
+                `Delhi → Mumbai • ${flights.length} flights found`
               }
             </p>
           </div>
@@ -115,7 +101,7 @@ const FlightResults = ({ searchData, onBackToSearch }: FlightResultsProps) => {
 
       {/* Flight Cards */}
       <div className="space-y-4">
-        {mockFlights.map((flight) => (
+        {flights.map((flight) => (
           <Card key={flight.id} className="shadow-card hover:shadow-elegant transition-shadow duration-300 bg-gradient-card border-0">
             <CardContent className="p-6">
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-center">

@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { ArrowLeft, Users, Calendar, CreditCard, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,22 +11,22 @@ import Header from "@/components/Header";
 
 const BookFlight = () => {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const flightId = searchParams.get('flightId') || '1';
+  const location = useLocation();
+  const { flight, searchData } = location.state || {};
   
   const [passengers, setPassengers] = useState([
     { firstName: '', lastName: '', email: '', phone: '', dateOfBirth: '' }
   ]);
 
-  const mockFlight = {
-    airline: "IndiGo",
-    flightNumber: "6E 2142",
-    departure: { time: "06:30", city: "Delhi", code: "DEL" },
-    arrival: { time: "08:45", city: "Mumbai", code: "BOM" },
-    duration: "2h 15m",
-    price: 4567,
-    date: "2024-02-15"
-  };
+  useEffect(() => {
+    if (!flight) {
+      navigate('/');
+    }
+  }, [flight, navigate]);
+
+  if (!flight) {
+    return null;
+  }
 
   const addPassenger = () => {
     setPassengers([...passengers, { firstName: '', lastName: '', email: '', phone: '', dateOfBirth: '' }]);
@@ -39,7 +39,7 @@ const BookFlight = () => {
   };
 
   const handleProceedToPayment = () => {
-    navigate('/payment', { state: { flight: mockFlight, passengers } });
+    navigate('/payment', { state: { flight, passengers } });
   };
 
   return (
@@ -71,15 +71,18 @@ const BookFlight = () => {
               <CardContent>
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="font-semibold text-lg">{mockFlight.airline} {mockFlight.flightNumber}</h3>
-                    <p className="text-muted-foreground">{mockFlight.date}</p>
+                    <h3 className="font-semibold text-lg">{flight.airline} {flight.flightNumber}</h3>
+                    <p className="text-muted-foreground">{searchData?.departDate ? new Date(searchData.departDate).toLocaleDateString() : 'Today'}</p>
                   </div>
                   <div className="text-right">
                     <div className="text-sm text-muted-foreground">
-                      {mockFlight.departure.time} - {mockFlight.arrival.time}
+                      {flight.departure.time} - {flight.arrival.time}
                     </div>
                     <div className="font-semibold">
-                      {mockFlight.departure.code} → {mockFlight.arrival.code}
+                      {flight.departure.code} → {flight.arrival.code}
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      {flight.departure.city} → {flight.arrival.city}
                     </div>
                   </div>
                 </div>
@@ -169,21 +172,21 @@ const BookFlight = () => {
                 <CardTitle>Booking Summary</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span>Base Fare ({passengers.length} passenger{passengers.length > 1 ? 's' : ''})</span>
-                    <span>₹{(mockFlight.price * passengers.length).toLocaleString('en-IN')}</span>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span>Base Fare ({passengers.length} passenger{passengers.length > 1 ? 's' : ''})</span>
+                      <span>₹{(flight.price * passengers.length).toLocaleString('en-IN')}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Taxes & Fees</span>
+                      <span>₹{Math.round(flight.price * 0.1 * passengers.length).toLocaleString('en-IN')}</span>
+                    </div>
+                    <Separator />
+                    <div className="flex justify-between font-semibold text-lg">
+                      <span>Total Amount</span>
+                      <span>₹{Math.round(flight.price * 1.1 * passengers.length).toLocaleString('en-IN')}</span>
+                    </div>
                   </div>
-                  <div className="flex justify-between">
-                    <span>Taxes & Fees</span>
-                    <span>₹{Math.round(mockFlight.price * 0.1 * passengers.length).toLocaleString('en-IN')}</span>
-                  </div>
-                  <Separator />
-                  <div className="flex justify-between font-semibold text-lg">
-                    <span>Total Amount</span>
-                    <span>₹{Math.round(mockFlight.price * 1.1 * passengers.length).toLocaleString('en-IN')}</span>
-                  </div>
-                </div>
 
                 <div className="space-y-3 pt-4">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
