@@ -8,14 +8,18 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
+import { useCreateBooking } from "@/hooks/useCreateBooking";
+import { useAuth } from "@/hooks/useAuth";
 import Header from "@/components/Header";
 
 const Payment = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
+  const { createBooking, loading: bookingLoading } = useCreateBooking();
+  const { user } = useAuth();
   
-  const { flight, passengers } = location.state || {};
+  const { flight, passengers, dbFlight, searchData } = location.state || {};
   
   const [paymentMethod, setPaymentMethod] = useState("card");
   const [cardDetails, setCardDetails] = useState({
@@ -27,52 +31,80 @@ const Payment = () => {
 
   const totalAmount = flight ? Math.round(flight.price * 1.1 * passengers.length) : 5000;
 
-  const handlePayment = () => {
-    // Razorpay demo payment integration
-    const options = {
-      key: "rzp_test_1DP5mmOlF5G5ag", // Demo test key
-      amount: totalAmount * 100, // Amount in paise
-      currency: "INR",
-      name: "SkyYatra",
-      description: `Flight booking - ${flight.airline} ${flight.flightNumber}`,
-      image: "/placeholder.svg",
-      handler: function (response: any) {
-        toast({
-          title: "Payment Successful!",
-          description: `Payment ID: ${response.razorpay_payment_id}`,
-        });
-        
-        // Navigate to confirmation page
-        setTimeout(() => {
-          navigate('/booking-confirmed', { 
-            state: { 
-              flight, 
-              passengers, 
-              bookingId: 'SY' + Math.random().toString(36).substr(2, 8).toUpperCase(),
-              amount: totalAmount,
-              paymentId: response.razorpay_payment_id
-            } 
-          });
-        }, 1000);
-      },
-      prefill: {
-        name: passengers[0]?.firstName + ' ' + passengers[0]?.lastName || '',
-        email: passengers[0]?.email || '',
-        contact: passengers[0]?.phone || ''
-      },
-      theme: {
-        color: "#2563eb"
-      }
-    };
+  const handlePayment = async () => {
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please log in to complete your booking.",
+        variant: "destructive"
+      });
+      navigate('/auth');
+      return;
+    }
 
-    // Load Razorpay script dynamically
-    const script = document.createElement('script');
-    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
-    script.onload = () => {
-      const rzp = new (window as any).Razorpay(options);
-      rzp.open();
-    };
-    document.head.appendChild(script);
+    try {
+      // Create booking in database first
+      const flightId = dbFlight?.id || 1; // Use real flight ID or fallback
+      const bookingResult = await createBooking({
+        flight_id: flightId,
+        passenger_details: passengers,
+        payment_id: 'temp_' + Date.now()
+      });
+
+      // Razorpay demo payment integration
+      const options = {
+        key: "rzp_test_1DP5mmOlF5G5ag", // Demo test key
+        amount: totalAmount * 100, // Amount in paise
+        currency: "INR",
+        name: "SkyYatra",
+        description: `Flight booking - ${flight.airline} ${flight.flightNumber}`,
+        image: "/placeholder.svg",
+        handler: function (response: any) {
+          toast({
+            title: "Payment Successful!",
+            description: `Payment ID: ${response.razorpay_payment_id}`,
+          });
+          
+          // Navigate to confirmation page with real booking data
+          setTimeout(() => {
+            navigate('/booking-confirmed', { 
+              state: { 
+                flight, 
+                passengers, 
+                bookingId: bookingResult.bookingId,
+                amount: totalAmount,
+                paymentId: response.razorpay_payment_id,
+                bookings: bookingResult.bookings
+              } 
+            });
+          }, 1000);
+        },
+        prefill: {
+          name: passengers[0]?.firstName + ' ' + passengers[0]?.lastName || '',
+          email: passengers[0]?.email || '',
+          contact: passengers[0]?.phone || ''
+        },
+        theme: {
+          color: "#2563eb"
+        }
+      };
+
+      // Load Razorpay script dynamically
+      const script = document.createElement('script');
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.onload = () => {
+        const rzp = new (window as any).Razorpay(options);
+        rzp.open();
+      };
+      document.head.appendChild(script);
+
+    } catch (error) {
+      toast({
+        title: "Booking Failed",
+        description: error instanceof Error ? error.message : "Failed to create booking",
+        variant: "destructive"
+      });
+    }
   };
 
   if (!flight) {
@@ -277,9 +309,10 @@ const Payment = () => {
                   variant="hero" 
                   className="w-full"
                   onClick={handlePayment}
+                  disabled={bookingLoading}
                 >
                   <Lock className="h-4 w-4" />
-                  Pay with Razorpay ₹{totalAmount.toLocaleString('en-IN')}
+                  {bookingLoading ? 'Processing...' : `Pay with Razorpay ₹${totalAmount.toLocaleString('en-IN')}`}
                 </Button>
 
                 <p className="text-xs text-center text-muted-foreground">

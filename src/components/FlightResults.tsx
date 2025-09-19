@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useFlights } from "@/hooks/useFlights";
 import { ArrowLeft, Clock, Plane, IndianRupee, Wifi, Utensils, Tv } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -56,7 +57,75 @@ const getFlightsForRoute = (searchData: any) => {
 
 const FlightResults = ({ searchData, onBackToSearch }: FlightResultsProps) => {
   const navigate = useNavigate();
-  const flights = getFlightsForRoute(searchData);
+  const { flights: dbFlights, loading, searchFlights } = useFlights();
+  const [flights, setFlights] = useState<any[]>([]);
+
+  // City code mapping
+  const cityNames: { [key: string]: string } = {
+    "DEL": "Delhi", "BOM": "Mumbai", "BLR": "Bangalore", "MAA": "Chennai", 
+    "CCU": "Kolkata", "HYD": "Hyderabad", "AMD": "Ahmedabad", "COK": "Kochi"
+  };
+
+  useEffect(() => {
+    const loadFlights = async () => {
+      if (searchData?.from && searchData?.to) {
+        // Search for real flights matching the route
+        const fromCity = cityNames[searchData.from] || searchData.from;
+        const toCity = cityNames[searchData.to] || searchData.to;
+        
+        const realFlights = await searchFlights(fromCity, toCity);
+        
+        if (realFlights.length > 0) {
+          // Use real flights and format them
+          const formattedFlights = realFlights.map((flight, index) => ({
+            id: flight.id,
+            airline: "SkyJet Airways", // Your airline brand
+            flightNumber: flight.flight_number,
+            logo: "✈️",
+            departure: { 
+              time: new Date(flight.departure_time).toLocaleTimeString('en-IN', { 
+                hour: '2-digit', 
+                minute: '2-digit',
+                hour12: false 
+              }),
+              city: flight.origin, 
+              code: searchData.from 
+            },
+            arrival: { 
+              time: new Date(flight.arrival_time).toLocaleTimeString('en-IN', { 
+                hour: '2-digit', 
+                minute: '2-digit',
+                hour12: false 
+              }),
+              city: flight.destination, 
+              code: searchData.to 
+            },
+            duration: "2h 15m", // Calculate actual duration if needed
+            stops: "Non-stop",
+            price: flight.price || 5000,
+            amenities: ["wifi", "meal", "entertainment"],
+            aircraft: "A320",
+            onTime: 85,
+            dbFlight: flight // Store original DB flight data
+          }));
+          setFlights(formattedFlights);
+        } else {
+          // Fallback to mock flights if no real flights found
+          setFlights(getFlightsForRoute(searchData));
+        }
+      }
+    };
+
+    loadFlights();
+  }, [searchData, searchFlights]);
+
+  if (loading) {
+    return (
+      <div className="w-full max-w-6xl mx-auto text-center py-8">
+        <div className="text-lg">Searching flights...</div>
+      </div>
+    );
+  }
   
   const getAmenityIcon = (amenity: string) => {
     switch (amenity) {
@@ -182,7 +251,8 @@ const FlightResults = ({ searchData, onBackToSearch }: FlightResultsProps) => {
                       onClick={() => navigate('/book-flight', { 
                         state: { 
                           flight: flight,
-                          searchData: searchData 
+                          searchData: searchData,
+                          dbFlight: flight.dbFlight // Pass the database flight data
                         } 
                       })}
                     >

@@ -12,7 +12,7 @@ import Header from "@/components/Header";
 const BookFlight = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { flight, searchData } = location.state || {};
+  const { flight, searchData, dbFlight } = location.state || {};
   
   const [passengers, setPassengers] = useState([
     { firstName: '', lastName: '', email: '', phone: '', dateOfBirth: '' }
@@ -39,7 +39,7 @@ const BookFlight = () => {
   };
 
   const handleProceedToPayment = () => {
-    navigate('/payment', { state: { flight, passengers } });
+    navigate('/payment', { state: { flight, passengers, dbFlight, searchData } });
   };
 
   return (
