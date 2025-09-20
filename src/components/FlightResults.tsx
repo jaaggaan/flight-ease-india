@@ -57,8 +57,9 @@ const getFlightsForRoute = (searchData: any) => {
 
 const FlightResults = ({ searchData, onBackToSearch }: FlightResultsProps) => {
   const navigate = useNavigate();
-  const { flights: dbFlights, loading, searchFlights } = useFlights();
+  const { searchFlights } = useFlights();
   const [flights, setFlights] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   // City code mapping
   const cityNames: { [key: string]: string } = {
@@ -68,58 +69,71 @@ const FlightResults = ({ searchData, onBackToSearch }: FlightResultsProps) => {
 
   useEffect(() => {
     const loadFlights = async () => {
+      setIsLoading(true);
+      
       if (searchData?.from && searchData?.to) {
         // Search for real flights matching the route
         const fromCity = cityNames[searchData.from] || searchData.from;
         const toCity = cityNames[searchData.to] || searchData.to;
         
-        const realFlights = await searchFlights(fromCity, toCity);
-        
-        if (realFlights.length > 0) {
-          // Use real flights and format them
-          const formattedFlights = realFlights.map((flight, index) => ({
-            id: flight.id,
-            airline: "SkyJet Airways", // Your airline brand
-            flightNumber: flight.flight_number,
-            logo: "✈️",
-            departure: { 
-              time: new Date(flight.departure_time).toLocaleTimeString('en-IN', { 
-                hour: '2-digit', 
-                minute: '2-digit',
-                hour12: false 
-              }),
-              city: flight.origin, 
-              code: searchData.from 
-            },
-            arrival: { 
-              time: new Date(flight.arrival_time).toLocaleTimeString('en-IN', { 
-                hour: '2-digit', 
-                minute: '2-digit',
-                hour12: false 
-              }),
-              city: flight.destination, 
-              code: searchData.to 
-            },
-            duration: "2h 15m", // Calculate actual duration if needed
-            stops: "Non-stop",
-            price: flight.price || 5000,
-            amenities: ["wifi", "meal", "entertainment"],
-            aircraft: "A320",
-            onTime: 85,
-            dbFlight: flight // Store original DB flight data
-          }));
-          setFlights(formattedFlights);
-        } else {
-          // Fallback to mock flights if no real flights found
+        try {
+          const realFlights = await searchFlights(fromCity, toCity);
+          
+          if (realFlights.length > 0) {
+            // Use real flights and format them
+            const formattedFlights = realFlights.map((flight, index) => ({
+              id: flight.id,
+              airline: "SkyJet Airways", // Your airline brand
+              flightNumber: flight.flight_number,
+              logo: "✈️",
+              departure: { 
+                time: new Date(flight.departure_time).toLocaleTimeString('en-IN', { 
+                  hour: '2-digit', 
+                  minute: '2-digit',
+                  hour12: false 
+                }),
+                city: flight.origin, 
+                code: searchData.from 
+              },
+              arrival: { 
+                time: new Date(flight.arrival_time).toLocaleTimeString('en-IN', { 
+                  hour: '2-digit', 
+                  minute: '2-digit',
+                  hour12: false 
+                }),
+                city: flight.destination, 
+                code: searchData.to 
+              },
+              duration: "2h 15m", // Calculate actual duration if needed
+              stops: "Non-stop",
+              price: flight.price || 5000,
+              amenities: ["wifi", "meal", "entertainment"],
+              aircraft: "A320",
+              onTime: 85,
+              dbFlight: flight // Store original DB flight data
+            }));
+            setFlights(formattedFlights);
+          } else {
+            // Fallback to mock flights if no real flights found
+            setFlights(getFlightsForRoute(searchData));
+          }
+        } catch (error) {
+          console.error('Error searching flights:', error);
+          // Fallback to mock flights on error
           setFlights(getFlightsForRoute(searchData));
         }
+      } else {
+        // Default flights if no search data
+        setFlights(getFlightsForRoute(searchData));
       }
+      
+      setIsLoading(false);
     };
 
     loadFlights();
   }, [searchData, searchFlights]);
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="w-full max-w-6xl mx-auto text-center py-8">
         <div className="text-lg">Searching flights...</div>
