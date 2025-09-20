@@ -59,7 +59,7 @@ const FlightResults = ({ searchData, onBackToSearch }: FlightResultsProps) => {
   const navigate = useNavigate();
   const { searchFlights } = useFlights();
   const [flights, setFlights] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [localLoading, setLocalLoading] = useState(true);
 
   // City code mapping
   const cityNames: { [key: string]: string } = {
@@ -69,14 +69,13 @@ const FlightResults = ({ searchData, onBackToSearch }: FlightResultsProps) => {
 
   useEffect(() => {
     const loadFlights = async () => {
-      setIsLoading(true);
-      
-      if (searchData?.from && searchData?.to) {
-        // Search for real flights matching the route
-        const fromCity = cityNames[searchData.from] || searchData.from;
-        const toCity = cityNames[searchData.to] || searchData.to;
-        
-        try {
+      try {
+        setLocalLoading(true);
+        if (searchData?.from && searchData?.to) {
+          // Search for real flights matching the route
+          const fromCity = cityNames[searchData.from] || searchData.from;
+          const toCity = cityNames[searchData.to] || searchData.to;
+          
           const realFlights = await searchFlights(fromCity, toCity);
           
           if (realFlights.length > 0) {
@@ -117,23 +116,23 @@ const FlightResults = ({ searchData, onBackToSearch }: FlightResultsProps) => {
             // Fallback to mock flights if no real flights found
             setFlights(getFlightsForRoute(searchData));
           }
-        } catch (error) {
-          console.error('Error searching flights:', error);
-          // Fallback to mock flights on error
-          setFlights(getFlightsForRoute(searchData));
+        } else {
+          // Default flights if no search data
+          setFlights(getFlightsForRoute({ from: "DEL", to: "BOM" }));
         }
-      } else {
-        // Default flights if no search data
-        setFlights(getFlightsForRoute(searchData));
+      } catch (error) {
+        console.error('Error loading flights:', error);
+        // Fallback to mock flights on error
+        setFlights(getFlightsForRoute(searchData || { from: "DEL", to: "BOM" }));
+      } finally {
+        setLocalLoading(false);
       }
-      
-      setIsLoading(false);
     };
 
     loadFlights();
   }, [searchData, searchFlights]);
 
-  if (isLoading) {
+  if (localLoading) {
     return (
       <div className="w-full max-w-6xl mx-auto text-center py-8">
         <div className="text-lg">Searching flights...</div>
