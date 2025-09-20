@@ -14,7 +14,71 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      bookings: {
+        Row: {
+          created_at: string | null
+          flight_id: number | null
+          id: number
+          seat_number: number
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          flight_id?: number | null
+          id?: number
+          seat_number: number
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          flight_id?: number | null
+          id?: number
+          seat_number?: number
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookings_flight_id_fkey"
+            columns: ["flight_id"]
+            isOneToOne: false
+            referencedRelation: "flights"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      flights: {
+        Row: {
+          arrival_time: string
+          created_at: string | null
+          departure_time: string
+          destination: string
+          flight_number: string
+          id: number
+          origin: string
+          price: number | null
+        }
+        Insert: {
+          arrival_time: string
+          created_at?: string | null
+          departure_time: string
+          destination: string
+          flight_number: string
+          id?: number
+          origin: string
+          price?: number | null
+        }
+        Update: {
+          arrival_time?: string
+          created_at?: string | null
+          departure_time?: string
+          destination?: string
+          flight_number?: string
+          id?: number
+          origin?: string
+          price?: number | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
